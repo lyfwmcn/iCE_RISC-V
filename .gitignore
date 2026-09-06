@@ -1,3 +1,5 @@
 .vscode/
-bin/
-AGENTS.md
+build/
+fpga/build/
+fpga/*.bit
+fpga/*.config

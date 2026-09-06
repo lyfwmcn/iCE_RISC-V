@@ -1,39 +1,48 @@
-CC = riscv64-unknown-elf-gcc
-LD = riscv64-unknown-elf-ld
-OBJCOPY = riscv64-unknown-elf-objcopy
-IVERILOG = iverilog
+CC        := riscv64-unknown-elf-gcc
+LD        := riscv64-unknown-elf-ld
+OBJCOPY   := riscv64-unknown-elf-objcopy
+IVERILOG  := iverilog
+PYTHON    := python
 
-BIN = $(BIN_DIR)/test
-ELF = $(BIN_DIR)/test.elf
-OBJ = $(BIN_DIR)/test.o
-ASM = $(ASM_DIR)/test.s
-LDSCRIPT = $(ASM_DIR)/linker.ld
-FILELIST = filelist.f
-SIM = $(BIN_DIR)/sim
-VCD = $(BIN_DIR)/wave.vcd
 
-ASM_DIR = asm
-BIN_DIR = bin
+BUILD_DIR := build
+
+
+BIN       := $(BUILD_DIR)/test
+ELF       := $(BUILD_DIR)/test.elf
+OBJ       := $(BUILD_DIR)/test.o
+ASM       := tests/test.s
+LDSCRIPT  := tests/linker.ld
+FILELIST  := filelist.f
+SIM       := $(BUILD_DIR)/sim
+MEM0      := $(BUILD_DIR)/mem0.hex
+MEM1      := $(BUILD_DIR)/mem1.hex
+BIN2HEX   := tools/bin2hex.py
+SRCS      := $(shell cat filelist.f)
+
 
 .PHONY: all clean
 
-all: $(SIM) | $(BIN_DIR)
+all: $(SIM) | $(BUILD_DIR)
 	./$<
 
-$(SIM): $(FILELIST) $(BIN) | $(BIN_DIR)
-	$(IVERILOG) -o $@ -f $<
+$(SIM): $(FILELIST) $(SRCS) $(MEM0) $(MEM1) | $(BUILD_DIR)
+	$(IVERILOG) -o $@ -f $(FILELIST)
 
-$(BIN): $(ELF) | $(BIN_DIR)
+$(MEM0) $(MEM1) &: $(BIN) | $(BUILD_DIR)
+	$(PYTHON) $(BIN2HEX) $< $(MEM0) $(MEM1)
+
+$(BIN): $(ELF) | $(BUILD_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(ELF): $(OBJ) | $(BIN_DIR)
+$(ELF): $(OBJ) $(LDSCRIPT) | $(BUILD_DIR)
 	$(LD) -m elf32lriscv -T $(LDSCRIPT) $< -o $@
 
-$(OBJ): $(ASM) | $(BIN_DIR)
+$(OBJ): $(ASM) | $(BUILD_DIR)
 	$(CC) -c $< -o $@ -march=rv32i_zicsr -mabi=ilp32
 
-$(BIN_DIR):
+$(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -f $(OBJ) $(ELF) $(BIN) $(SIM) $(VCD)
+	rm -rf $(BUILD_DIR)

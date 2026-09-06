@@ -33,35 +33,27 @@ reg [17:0] mem0 [1023:0];
 reg [17:0] mem1 [1023:0];
 
 // synthesis translate_off
-// 仿真用的字节视图：初值由 bin/test 载入，store 时与 mem0/mem1 同步镜像，供 tb 直接读字节。
+// 仿真用字节视图：从 lane 阵列重建，供 tb 直接读字节打印（store 路径仍同步镜像 mem）。
 reg [7:0] mem [4095:0];
 integer i;
-integer fd;
-integer ret;
+// synthesis translate_on
+
+// 程序初始化：bin/mem0.hex、bin/mem1.hex 由 bin/test 生成（见 tools/bin2hex.py）。
+// 仿真时在 t=0 读入；综合时作为 EBR 的 INIT 烧进 bitstream（单份来源，仿真与板级同字节）。
 initial begin
+    $readmemh("build/mem0.hex", mem0, 0, 1023);
+    $readmemh("build/mem1.hex", mem1, 0, 1023);
+    // synthesis translate_off
     for (i = 0; i < 4096; i = i + 1)
         mem[i] = 8'h0;
     for (i = 0; i < 1024; i = i + 1) begin
-        mem0[i] = 18'h0;
-        mem1[i] = 18'h0;
+        mem[4*i+0] = mem0[i][7:0];
+        mem[4*i+1] = mem0[i][16:9];
+        mem[4*i+2] = mem1[i][7:0];
+        mem[4*i+3] = mem1[i][16:9];
     end
-    fd = $fopen("bin/test", "rb");
-
-    if (fd == 0) begin
-        $display("Failed to open test");
-        $finish;
-    end
-
-    ret = $fread(mem, fd);
-
-    $fclose(fd);
-
-    for (i = 0; i < 1024; i = i + 1) begin
-        mem0[i] = {1'h0, mem[4*i+1], 1'h0, mem[4*i]};
-        mem1[i] = {1'h0, mem[4*i+3], 1'h0, mem[4*i+2]};
-    end
+    // synthesis translate_on
 end
-// synthesis translate_on
 
 reg Request_Valid_Data_Reg;
 reg Request_Valid_Instr_Reg;
@@ -164,10 +156,12 @@ always @(posedge CLK or posedge RST) begin
         Respond_Valid_Instr <= 1'h0;
         Respond_Data_Instr <= 32'h0;
     end
-    else if (Request_Valid_Instr_Reg) begin
-        Respond_Fault_Instr <= Respond_Fault_Instr_Wire;
+    else begin
         Respond_Valid_Instr <= Respond_Valid_Instr_Wire;
-        Respond_Data_Instr <= Respond_Data_Instr_Wire;
+        if (Request_Valid_Instr_Reg) begin
+            Respond_Fault_Instr <= Respond_Fault_Instr_Wire;
+            Respond_Data_Instr <= Respond_Data_Instr_Wire;
+        end
     end
 end
 
