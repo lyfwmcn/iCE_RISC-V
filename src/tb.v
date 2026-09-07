@@ -109,7 +109,7 @@ initial begin
 end
 
 initial begin
-    $dumpfile("./bin/wave.vcd");
+    $dumpfile("build/wave.vcd");
     $dumpvars(0, tb);
 end
 
