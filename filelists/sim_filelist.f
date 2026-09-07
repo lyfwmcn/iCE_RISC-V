@@ -20,6 +20,6 @@ src/TrapCSRByPass.v
 src/WBStage.v
 
 src/CPU.v
-src/SystemBus.v
+sim/SystemBus.v
 
-src/tb.v
+sim/tb.v

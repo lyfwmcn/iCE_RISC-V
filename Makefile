@@ -30,7 +30,7 @@ SYNSRCS      := $(shell cat filelists/syn_filelist.f | grep -v '^$$')
 SYN          := $(BUILD_DIR)/top.bit
 CONFIG       := $(BUILD_DIR)/top_out.config
 JSON         := $(BUILD_DIR)/top.json
-LPF          := fpga/top.lpf
+LPF          := syn/top.lpf
 
 
 .PHONY: all sim synth clean
@@ -60,7 +60,7 @@ $(OBJ): $(ASM) | $(BUILD_DIR)
 sim: $(SIM) | $(BUILD_DIR)
 	./$<
 
-$(SIM): $(SIMFILELIST) $(SIMSRCS) $(MEM0) $(MEM1) | $(BUILD_DIR)
+$(SIM): $(SIMFILELIST) $(SIMSRCS) $(BIN) | $(BUILD_DIR)
 	$(IVERILOG) -o $@ -f $<
 
 

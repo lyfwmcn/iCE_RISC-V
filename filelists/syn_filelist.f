@@ -20,10 +20,10 @@ src/TrapCSRByPass.v
 src/WBStage.v
 
 src/CPU.v
-src/SystemBus.v
 
-fpga/report.v
-fpga/rst_gen.v
-fpga/uart_tx.v
+syn/SystemBus.v
+syn/report.v
+syn/rst_gen.v
+syn/uart_tx.v
 
-fpga/top.v
+syn/top.v
