@@ -8,11 +8,4 @@ SECTIONS
     {
         *(.text)
     }
-
-    . = 0x200;
-
-    .text.system :
-    {
-        *(.text.system)
-    }
 }
