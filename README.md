@@ -1,7 +1,6 @@
 # 平台及工具链
 1. 平台：x86_64 Linux
 2. 工具链：make, iverilog, riscv64-unknown-elf-gcc, python3, yosys, nextpnr-ecp5, ecppack
-3. /run/media/$USER
 # 使用方法
 ## 模拟
 1. 在项目根目录执行 make/make all/make sim
