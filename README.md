@@ -1,6 +1,14 @@
+# 平台及工具链
+1. 平台：x86_64 Linux
+2. 工具链：make, iverilog, riscv64-unknown-elf-gcc, python3, yosys, nextpnr-ecp5, ecppack
+3. /run/media/$USER
 # 使用方法
-1. 安装 make, iverilog, riscv64-unknown-elf-gcc, riscv64-unknown-elf-ld, riscv64-unknown-elf-objcopy
-2. 在项目目录执行 make
+## 模拟
+1. 在项目根目录执行 make/make all/make sim
+## 综合
+1. 连接电脑和 iCESugar-Pro v1.3
+2. 挂载到 /run/media/$USER
+3. 在项目根目录执行 make synth
 # 开发进度
 ## 目前实现的异常处理机制
 1. 将发现的先后顺序作为优先级选出异常

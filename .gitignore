@@ -1,5 +1,2 @@
 .vscode/
 build/
-fpga/build/
-fpga/*.bit
-fpga/*.config

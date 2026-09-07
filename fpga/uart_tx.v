@@ -6,15 +6,15 @@
 module uart_tx #(
     parameter DIV = 25_000_000 / 115_200   // 每 bit 的时钟数 (217)
 ) (
-    input  wire       clk,
-    input  wire       rst,
-    input  wire       start,
-    input  wire [7:0] data,
-    output reg        busy,
-    output reg        tx
+    input clk,
+    input rst,
+    input start,
+    input [7:0] data,
+    output reg busy,
+    output reg tx
 );
 
-localparam IDLE   = 1'd0;
+localparam IDLE   = 2'd0;
 localparam ACTIVE = 1'd1;
 
 reg [8:0] cnt;
@@ -31,39 +31,41 @@ always @(posedge clk or posedge rst) begin
         sh    <= 8'h0;
         cnt   <= 9'd0;
     end
-    else case (state)
-        IDLE: begin
-            busy <= 1'b0;
-            tx   <= 1'b1;
-            if (start) begin
-                state <= ACTIVE;
-                busy  <= 1'b1;
-                bits  <= 4'd0;
-                sh    <= data;
-                cnt   <= 9'd0;
-                tx    <= 1'b0;      // 起始位：持续到第一个 cnt==DIV-1 边界
-            end
-        end
-        ACTIVE: begin
-            cnt <= (cnt == DIV - 1) ? 9'd0 : cnt + 9'd1;
-            if (cnt == DIV - 1) begin
-                if (bits < 8) begin
-                    tx  <= sh[0];
-                    sh  <= {1'b0, sh[7:1]};
-                    bits <= bits + 1'b1;
-                end
-                else if (bits == 8) begin
-                    tx   <= 1'b1;   // 停止位
-                    bits <= bits + 1'b1;
-                end
-                else begin
-                    state <= IDLE;
-                    busy  <= 1'b0;
-                    tx    <= 1'b1;
+    else begin
+        case (state)
+            IDLE: begin
+                busy <= 1'b0;
+                tx   <= 1'b1;
+                if (start) begin
+                    state <= ACTIVE;
+                    busy  <= 1'b1;
+                    bits  <= 4'd0;
+                    sh    <= data;
+                    cnt   <= 9'd0;
+                    tx    <= 1'b0;      // 起始位：持续到第一个 cnt==DIV-1 边界
                 end
             end
-        end
-    endcase
+            ACTIVE: begin
+                cnt <= (cnt == DIV - 1) ? 9'd0 : cnt + 9'd1;
+                if (cnt == DIV - 1) begin
+                    if (bits < 8) begin
+                        tx  <= sh[0];
+                        sh  <= {1'b0, sh[7:1]};
+                        bits <= bits + 1'b1;
+                    end
+                    else if (bits == 8) begin
+                        tx   <= 1'b1;   // 停止位
+                        bits <= bits + 1'b1;
+                    end
+                    else begin
+                        state <= IDLE;
+                        busy  <= 1'b0;
+                        tx    <= 1'b1;
+                    end
+                end
+            end
+        endcase
+    end
 end
 
 endmodule
