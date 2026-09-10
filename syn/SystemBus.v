@@ -41,8 +41,8 @@ integer i;
 // 程序初始化：bin/mem0.hex、bin/mem1.hex 由 bin/test 生成（见 tools/bin2hex.py）。
 // 仿真时在 t=0 读入；综合时作为 EBR 的 INIT 烧进 bitstream（单份来源，仿真与板级同字节）。
 initial begin
-    $readmemh("build/mem0.hex", mem0, 0, 1023);
-    $readmemh("build/mem1.hex", mem1, 0, 1023);
+    $readmemh("build/syn_mem0.hex", mem0, 0, 1023);
+    $readmemh("build/syn_mem1.hex", mem1, 0, 1023);
     // synthesis translate_off
     for (i = 0; i < 4096; i = i + 1)
         mem[i] = 8'h0;

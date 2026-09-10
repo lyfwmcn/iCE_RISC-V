@@ -65,15 +65,15 @@ initial begin
 end
 
 initial begin
-    #1000
-    $display("100:     %h", SystemBus.mem[100]);
-    $display("101:     %h", SystemBus.mem[101]);
-    $display("102:     %h", SystemBus.mem[102]);
-    $display("103:     %h", SystemBus.mem[103]);
-    $display("104:     %h", SystemBus.mem[104]);
-    $display("105:     %h", SystemBus.mem[105]);
-    $display("106:     %h", SystemBus.mem[106]);
-    $display("107:     %h", SystemBus.mem[107]);
+    #2000
+    // $display("188:     %h", SystemBus.mem[188]);
+    // $display("189:     %h", SystemBus.mem[189]);
+    // $display("190:     %h", SystemBus.mem[190]);
+    // $display("191:     %h", SystemBus.mem[191]);
+    // $display("104:     %h", SystemBus.mem[104]);
+    // $display("105:     %h", SystemBus.mem[105]);
+    // $display("106:     %h", SystemBus.mem[106]);
+    // $display("107:     %h", SystemBus.mem[107]);
     $display("x1/ra:     %h", CPU.RegFile.regs[1]);
     $display("x2/sp:     %h", CPU.RegFile.regs[2]);
     $display("x3/gp:     %h", CPU.RegFile.regs[3]);

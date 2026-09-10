@@ -260,7 +260,7 @@ IFStage IFStage (
 IDStage IDStage (
     .CLK(CLK),
     .RST(RST),
-    .Flush(RegWait | CSRWait | ActualJump | Trap | Ret),
+    .Flush(((RegWait | CSRWait) & !MemWait) | ActualJump | Trap | Ret),
     .Stall(MemWait),
     .Privilege(Privilege),
 

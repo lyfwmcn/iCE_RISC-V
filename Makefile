@@ -11,14 +11,20 @@ ECPPACK      := ecppack
 BUILD_DIR    := build
 
 
-BIN          := $(BUILD_DIR)/test.bin
-ELF          := $(BUILD_DIR)/test.elf
-OBJ          := $(BUILD_DIR)/test.o
-ASM          := tests/test.s
-LDSCRIPT     := tests/linker.ld
-MEM0         := $(BUILD_DIR)/mem0.hex
-MEM1         := $(BUILD_DIR)/mem1.hex
+SIMBIN       := $(BUILD_DIR)/sim_test.bin
+SIMELF       := $(BUILD_DIR)/sim_test.elf
+SIMOBJ       := $(BUILD_DIR)/sim_start.o $(BUILD_DIR)/sim_main.o
+SIMLDSCRIPT  := tests/sim/linker.ld
 BIN2HEX      := tools/bin2hex.py
+
+
+SYNMEM0      := $(BUILD_DIR)/syn_mem0.hex
+SYNMEM1      := $(BUILD_DIR)/syn_mem1.hex
+SYNBIN       := $(BUILD_DIR)/syn_test.bin
+SYNELF       := $(BUILD_DIR)/syn_test.elf
+SYNOBJ       := $(BUILD_DIR)/syn_test.o
+SYNASM       := tests/syn/test.s
+SYNLDSCRIPT  := tests/syn/linker.ld
 
 
 SIMFILELIST  := filelists/sim_filelist.f
@@ -43,24 +49,23 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 
-$(MEM0) $(MEM1) &: $(BIN) $(BIN2HEX) | $(BUILD_DIR)
-	$(PYTHON) $(BIN2HEX) $< $(MEM0) $(MEM1)
-
-$(BIN): $(ELF) | $(BUILD_DIR)
+$(SIMBIN): $(SIMELF) | $(BUILD_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(ELF): $(OBJ) $(LDSCRIPT) | $(BUILD_DIR)
-	$(LD) -m elf32lriscv -T $(LDSCRIPT) $< -o $@
+$(SIMELF): $(SIMOBJ) $(SIMLDSCRIPT) | $(BUILD_DIR)
+	$(LD) -m elf32lriscv -T $(SIMLDSCRIPT) $(SIMOBJ) -o $@
 
-$(OBJ): $(ASM) | $(BUILD_DIR)
-	$(CC) -c $< -o $@ -march=rv32i_zicsr -mabi=ilp32
+$(BUILD_DIR)/sim_%.o: tests/sim/%.s | $(BUILD_DIR)
+	$(CC) -c $< -o $@ -march=rv32i_zicsr -mabi=ilp32 -ffreestanding
 
+$(BUILD_DIR)/sim_%.o: tests/sim/%.c | $(BUILD_DIR)
+	$(CC) -c $< -o $@ -march=rv32i_zicsr -mabi=ilp32 -ffreestanding
 
 
 sim: $(SIM) | $(BUILD_DIR)
 	./$<
 
-$(SIM): $(SIMFILELIST) $(SIMSRCS) $(BIN) | $(BUILD_DIR)
+$(SIM): $(SIMFILELIST) $(SIMSRCS) $(SIMBIN) | $(BUILD_DIR)
 	$(IVERILOG) -o $@ -f $<
 
 
@@ -75,8 +80,20 @@ $(SYN): $(CONFIG) | $(BUILD_DIR)
 $(CONFIG): $(JSON) $(LPF) | $(BUILD_DIR)
 	$(NEXTPNR_ECP5) --25k --package CABGA256 --speed 6 --json $(JSON) --textcfg $@ --lpf $(LPF) --freq 65
 
-$(JSON): $(SYNSRCS) $(MEM0) $(MEM1) | $(BUILD_DIR)
+$(JSON): $(SYNSRCS) $(SYNMEM0) $(SYNMEM1) | $(BUILD_DIR)
 	$(YOSYS) -p "read_verilog -sv $(SYNSRCS); hierarchy -top top; synth_ecp5 -json $(JSON)"
+
+$(SYNMEM0) $(SYNMEM1) &: $(SYNBIN) $(BIN2HEX) | $(BUILD_DIR)
+	$(PYTHON) $(BIN2HEX) $< $(SYNMEM0) $(SYNMEM1)
+
+$(SYNBIN): $(SYNELF) | $(BUILD_DIR)
+	$(OBJCOPY) -O binary $< $@
+
+$(SYNELF): $(SYNOBJ) $(SYNLDSCRIPT) | $(BUILD_DIR)
+	$(LD) -m elf32lriscv -T $(SYNLDSCRIPT) $< -o $@
+
+$(SYNOBJ): $(SYNASM) | $(BUILD_DIR)
+	$(CC) -c $< -o $@ -march=rv32i_zicsr -mabi=ilp32 -ffreestanding
 
 
 clean:

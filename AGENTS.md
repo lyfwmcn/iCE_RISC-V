@@ -11,6 +11,7 @@ Course-style Chinese Verilog project: a pipelined RV32I + Zicsr RISC-V core (M/S
 - `filelists/sim_filelist.f` and `filelists/syn_filelist.f` — iverilog (sim) and yosys (syn) source lists. Both include `src/*`. `sim` list adds `sim/tb.v` + `sim/SystemBus.v`; `syn` list adds the `syn/*` RTL and **must not** contain any tb. New files go into the right list or the tool won't see them.
 - `tests/` — programs: `tests/test.s` is **the single program for both sim and board**; `tests/<Category>/test.s` are samples (R, S, B, Load, J, Jalr, ArithmeticI, CSR). `tests/linker.ld` lays out only `.text` at 0x0 (no `.text.system`/handler section anymore).
 - `tools/bin2hex.py` — `build/test.bin` → `build/mem0.hex` + `build/mem1.hex` (EBR lane words, 4KB zero-padded).
+- riscv-tests glue (see below): `tools/run_rv32ui.sh`, `tools/rv32i_env/riscv_test.h`, `tests/link_rv32ui.ld`, `sim/tb_rv32ui.v`. `sim/tb_rv32ui.v` is compiled ad hoc (not in `sim_filelist.f`).
 - `build/` — all artifacts (gitignored).
 
 ## Commands (must run from repo root — paths are root-relative)
@@ -24,6 +25,13 @@ Course-style Chinese Verilog project: a pipelined RV32I + Zicsr RISC-V core (M/S
 ## Running a categorized test
 
 - Copy `tests/<Category>/test.s` over `tests/test.s`, then `make sim`. Verify via stdout and `build/wave.vcd`. Programs conventionally end `flag: j flag`.
+
+## riscv-tests (rv32ui) runner
+
+- External suite kept in a sibling clone (default `~/Projects/Verilog/riscv-tests`; override with `RISCV_TESTS`). Run `tools/run_rv32ui.sh [name...]` — no args runs all of `isa/rv32ui`, prints `PASS/FAIL/TIMEOUT` per test + summary, non-zero exit on any failure. It only writes `build/` artifacts.
+- Pipeline: compile `isa/rv32ui/<n>.S` with `-I tools/rv32i_env` FIRST (so it overrides `env/p/riscv_test.h`), link `tests/link_rv32ui.ld` (`.text`@0, `.tohost`@0xC00, whole image ≤4KB), `objcopy` → `build/test.bin`, run `sim/tb_rv32ui.v`, which polls `mem[0xC00]` (`1`=PASS, other=fail code, no write=timeout).
+- The override header has two deliberate patches: forces the test body to run in **M mode** (`mstatus.MPP=3`) because the core only reliably handles M-mode traps; and strips `fence` from `RVTEST_PASS/FAIL` because the core has **no FENCE decode** (opcode 0x0f → illegal). The real fix is to decode FENCE as NOP.
+- Known non-CPU blockers: `fence_i` needs `zifencei`; `ld_st`'s image exceeds 4KB (linker overlap). Last verified matrix over 44 rv32ui tests: 30 PASS / 12 FAIL / 2 COMPILE_FAIL. Unresolved CPU bugs surfaced: `bgeu`, `bltu`, and several `lh/lhu/lw/sb/sh/sw/st_ld/ma_data` assertions — chase each with a minimal case before trusting the suite.
 
 ## Microarchitecture (wiring in `src/CPU.v`)
 
@@ -45,4 +53,4 @@ Course-style Chinese Verilog project: a pipelined RV32I + Zicsr RISC-V core (M/S
 
 ## Editor (optional, gitignored `.vscode/`)
 
-- Verilog-HDL/SystemVerilog ext: built-in features only index the open file; cross-file module jumps need verible-verilog-ls AND a root `verible.filelist` listing every RTL file (relative paths). Currently the repo has none.
+- Verilog-HDL/SystemVerilog ext: built-in features only index the open file. Cross-file module jumps work with verible-verilog-ls enabled (`verilog.languageServer.veribleVerilogLs.enabled`) — no `verible.filelist` needed (verified; verible resolves modules across the workspace on its own).
