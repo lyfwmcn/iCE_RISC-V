@@ -65,7 +65,7 @@ initial begin
 end
 
 initial begin
-    #10000
+    #20000
     // $display("188:     %h", SystemBus.mem[188]);
     // $display("189:     %h", SystemBus.mem[189]);
     // $display("190:     %h", SystemBus.mem[190]);
@@ -78,8 +78,8 @@ initial begin
     // $display("x2/sp:     %h", CPU.RegFile.regs[2]);
     // $display("x3/gp:     %h", CPU.RegFile.regs[3]);
     // $display("x4/tp:     %h", CPU.RegFile.regs[4]);
-    // $display("x5/t0:     %h", CPU.RegFile.regs[5]);
-    // $display("x6/t1:     %h", CPU.RegFile.regs[6]);
+    $display("x5/t0:     %h", CPU.RegFile.regs[5]);
+    $display("x6/t1:     %h", CPU.RegFile.regs[6]);
     // $display("x7/t2:     %h", CPU.RegFile.regs[7]);
     // $display("x8/s0/fp:  %h", CPU.RegFile.regs[8]);
     // $display("x9/s1:     %h", CPU.RegFile.regs[9]);

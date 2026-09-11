@@ -39,7 +39,12 @@ JSON         := $(BUILD_DIR)/top.json
 LPF          := syn/top.lpf
 
 
-.PHONY: all sim synth clean
+TIMING       := $(BUILD_DIR)/timing.json
+TIMCONFIG    := $(BUILD_DIR)/timing.config
+STAGETIMING  := tools/stage_timing.py
+
+
+.PHONY: all sim synth timing clean
 
 
 all: sim | $(BUILD_DIR)
@@ -94,6 +99,13 @@ $(SYNELF): $(SYNOBJ) $(SYNLDSCRIPT) | $(BUILD_DIR)
 
 $(SYNOBJ): $(SYNASM) | $(BUILD_DIR)
 	$(CC) -c $< -o $@ -march=rv32i_zicsr -mabi=ilp32 -ffreestanding
+
+
+timing: $(TIMING) $(STAGETIMING) | $(BUILD_DIR)
+	$(PYTHON) $(STAGETIMING) $<
+
+$(TIMING): $(JSON) $(LPF) | $(BUILD_DIR)
+	$(NEXTPNR_ECP5) --25k --package CABGA256 --speed 6 --json $(JSON) --textcfg $(TIMCONFIG) --lpf $(LPF) --freq 25 --report $@ --detailed-timing-report
 
 
 clean:
