@@ -26,9 +26,9 @@ integer r;
 initial begin
     for (i = 0; i < 4096; i = i + 1)
         mem[i] = 8'h0;
-    fd = $fopen("build/test.bin", "rb");
+    fd = $fopen("build/sim_test.bin", "rb");
     if(fd == 0) begin
-        $display("ERROR: cannot open build/test.bin");
+        $display("ERROR: cannot open build/sim_test.bin");
         $finish;
     end
     r = $fread(mem, fd);
@@ -105,6 +105,11 @@ end
 always @(posedge CLK) begin
     if (Request_Valid_Data_Reg && Request_Write_Data_Reg &&
         Request_Addr_Data_Reg[1:0] == 2'h0 && Request_Addr_Data_Reg[31:12] == 20'h0) begin
+        if (Request_Addr_Data_Reg == 32'hffc &&
+            (Request_EN_Data_Reg[0] || Request_EN_Data_Reg[1] ||
+            Request_EN_Data_Reg[2] || Request_EN_Data_Reg[3])) begin
+            $write("%c", Request_Data_Data_Reg[7:0]);
+        end
         if (Request_EN_Data_Reg[0]) begin
             mem[{Request_Addr_Data_Reg[31:2], 2'h0}] <= Request_Data_Data_Reg[7:0];
         end

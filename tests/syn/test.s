@@ -2,7 +2,7 @@
 .globl _start
 
 _start:
-    addi x1, x0, 0x123       # 随便算几个结果
+    addi x1, x0, 0x122       # 随便算几个结果
     addi x2, x0, -1
     slli x3, x2, 4           # x3 = 0xfffffff0
 
