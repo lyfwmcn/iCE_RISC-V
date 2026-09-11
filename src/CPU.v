@@ -230,7 +230,7 @@ CSRFile CSRFile (
 IFStage IFStage (
     .CLK(CLK),
     .RST(RST),
-    .Flush(ActualJump | PredJump | Trap | Ret),
+    .Flush(ActualJump | (PredJump & !RegWait & !CSRWait & !MemWait) | Trap | Ret),
     .Ret(Ret),
     .Stall(RegWait | CSRWait | MemWait),
     .Trap(Trap),
