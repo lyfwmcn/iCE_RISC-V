@@ -3,11 +3,11 @@
 
 _start:
 	la sp, stack_top
-	call main
-	csrr t0, mcycle
-	nop
-	nop
-	nop
-	csrr t1, minstret
+	la t0, trap_entry
+	csrw mtvec, t0
+	ebreak
+    li t0, 4092
+    li t1, 65
+    sw t1, 0(t0)
 1:
     j 1b
